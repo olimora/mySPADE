@@ -125,6 +125,7 @@ SPADE.downsampleFCS <- function(
 		stop("More events requested than present in file")
 	}
 
+  cat(sprintf("Sampled data: nrow %d, ncol %d", nrow(out_data), ncol(out_data)))
 	out_frame <- flowFrame(out_data,params,description=description(in_fcs))
 	write.FCS(out_frame,outfilename)
 }

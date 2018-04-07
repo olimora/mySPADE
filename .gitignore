@@ -16,3 +16,5 @@ inst/doc/SPADE.tex
 _site
 .rvmrc
 .Rproj.user
+
+**/.idea/**
