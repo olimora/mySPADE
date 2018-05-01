@@ -110,164 +110,162 @@ SPADE.driver <- function(
 		density_files <- c(density_files, f_density)
 		sampled_files <- c(sampled_files, f_sampled)	
 	}
-	
-	return
 
-	# message("Clustering files...")
-	# cells_file <- paste(out_dir,"clusters.fcs",sep="")
-	# clust_file <- paste(out_dir,"clusters.table",sep="")
-	# graph_file <- paste(out_dir,"mst.gml",sep="")
-	# SPADE.FCSToTree(sampled_files, cells_file, graph_file, clust_file, 
-	# 				cols=cluster_cols, 
-	# 				transforms=transforms,
-	# 				k=k, 
-	# 				desired_samples=clustering_samples,
-	# 				comp=comp)
-	# 
-	# sampled_files <- c()
-	# for (f in density_files) {
-	# 	message("Upsampling file: ",f)
-	# 	f_sampled <- paste(f,".cluster.fcs",sep="")
-	# 	SPADE.addClusterToFCS(f, f_sampled, cells_file, cols=cluster_cols, transforms=transforms, comp=comp)
-	# 	sampled_files <- c(sampled_files, f_sampled)
-	# }
-	# 
-	# graph  <- read.graph(graph_file, format="gml")
-	# 
-	# # Compute the layout once for the MST, write out for use by other functions
-	# layout_table <- layout(graph)
-	# if (deparse(substitute(layout)) != "SPADE.layout.arch")  # The igraph internal layouts are much more compact than arch.layout
-	# 	layout_table = layout_table * 50
-	# write.table(layout_table,paste(out_dir,file="layout.table",sep=""),row.names = FALSE,col.names = FALSE)
-	# 
-	# # Track all attributes to compute global limits
-	# attr_values <- list()
-	# 
-	# if (is.null(panels)) {  # Initialize panels if NULL
-	# 	panels <- list( list(panel_files=basename(files), median_cols=NULL) )
-	# }
-	# 
-	# for (p in panels) {
-	# 
-	# 	reference_medians <- NULL
-	# 	if (!is.null(p$reference_files)) {
-	# 		# Note assuming the ordering of files and sampled_files are identical...
-	# 		reference_files   <- sapply(as.vector(p$reference_files), function(f) { sampled_files[match(f,basename(files))[1]] })
-	# 		reference_medians <- SPADE.markerMedians(reference_files, vcount(graph), cols=p$fold_cols, transforms=transforms, cluster_cols=cluster_cols, comp=comp)
-	# 	}
-	# 
-	# 	for (f in as.vector(p$panel_files)) {
-	# 		# Note assuming the ordering of files and sampled_files are identical...
-	# 		f <- sampled_files[match(f, basename(files))[1]]
-	# 
-	# 		# Compute the median marker intensities in each node, including the overall cell frequency per node	
-	# 		message("Computing medians for file: ",f)
-	# 		anno <- SPADE.markerMedians(f, vcount(graph), cols=p$median_cols, transforms=transforms, cluster_cols=cluster_cols, comp=comp)
-	# 		if (!is.null(reference_medians)) {	# If a reference file is specified								
-	# 			# Compute the fold change compared to reference medians
-	# 			message("Computing fold change for file: ", f)
-	# 			fold_anno <- SPADE.markerMedians(f, vcount(graph), cols=p$fold_cols, transforms=transforms, cluster_cols=cluster_cols, comp=comp)
-	# 			fold <- fold_anno$medians - reference_medians$medians
-	# 			raw_fold <- fold_anno$raw_medians / reference_medians$raw_medians
-	# 			
-	# 			ratio <- log10(fold_anno$percenttotal / reference_medians$percenttotal); 
-	# 			colnames(ratio) <- c("percenttotalratiolog")
-	# 			is.na(ratio) <- fold_anno$count == 0 | reference_medians$count == 0
-	# 
-	# 			# Merge the fold-change columns with the count, frequency, and median columns
-	# 			anno <- c(anno, list(percenttotalratiolog = ratio, fold = fold, raw_fold=raw_fold))	
-	# 		}
-	# 
-	# 		SPADE.write.graph(SPADE.annotateGraph(graph, layout=layout_table, anno=anno), paste(f,".medians.gml",sep=""), format="gml")
-	# 		# We save an R native version of the annotations to simpify plotting, and other downstream operations
-	# 		anno <- SPADE.flattenAnnotations(anno)
-	# 		for (c in colnames(anno)) { attr_values[[c]] <- c(attr_values[[c]], anno[,c]) }
-	# 		save(anno, file=paste(f,"anno.Rsave",sep="."))	
-	# 	}
-	# }
-	# 
-	# # Compute the global limits (cleaning up attribute names to match those in GML files)
-	# attr_ranges <- t(sapply(attr_values, function(x) { quantile(x, probs=c(0.00, pctile_color, 1.00), na.rm=TRUE) }))
-	# rownames(attr_ranges) <- sapply(rownames(attr_ranges), function(x) { gsub("[^A-Za-z0-9_]","",x) })
-	# write.table(attr_ranges, paste(out_dir,"global_boundaries.table",sep=""), col.names=FALSE)
-	# 
-	# # Evaluate population rules if mapping provided
-	# ruleDir = system.file(paste("tools","PopulationRules","",sep=.Platform$file.sep),package="spade")
-	# 
-	# if (!is.null(fcs_channel_mappings_json)) {
-	# 	library("rjson")
-	# 	library("hash")
-	# 	fcs_channel_mapping=fromJSON(fcs_channel_mappings_json)
-	# 	cat("Evaluating Population Rules....\n")
-	# 	#Ketaki: Is this correct? Look at only one fcs file. The channel ordering should be the same across all fcs files.
-	# 	population_rule_mappings = SPADE.createPopulationMapping(sampled_files[1], ruleDir, fcs_channel_mapping)
-	# 	for (filename in names(population_rule_mappings)) {
-	# 		for (sampled_file in sampled_files) {
-	# 			cat(paste("Rule:",filename,"\n",sep=" "))
-	# 			message("Evaluating population rule: ", filename, " for file: ", sampled_file)
-	# 			SPADE.evaluateCellTypeRule(out_dir,sampled_file,ruleCols=population_rule_mappings[[filename]],ruleDir=ruleDir,ruleFile=filename)     
-	# 		}
-	# 	}
-	# }
-	# 
-	# ### Produce statistics tables ###
-	# message("Producing tables...")
-	# dir.create(paste(out_dir,'tables',sep='/'),recursive=TRUE,showWarnings=FALSE)
-	# # Find the files
-	# files <- dir(out_dir,full.names=TRUE,pattern=glob2rx("*.anno.Rsave"))
-	# # Find all the params
-	# params <- unique(unlist(c(sapply(files, function(f) { load(f); colnames(anno); })))) #Update to remove redundant file writing
-	# 
-	# # Transposition 1: Rows are nodes, cols are files, files are params
-	# dir.create(paste(out_dir,'tables','byAttribute',sep='/'),recursive=TRUE,showWarnings=FALSE)
-	# for (p in params) {
-	# 	pivot <- c()
-	# 	names <- c()
-	# 	for (f in files){
-	# 		load(f)
-	# 		f = basename(f)
-	# 		if (p %in% colnames(anno)) {
-	# 			pivot <- cbind(pivot, anno[,p])
-	# 			names <- c(names, f)
-	# 		}
-	# 	}
-	# 	names <- gsub("[[:alnum:][:punct:]]+/output/([[:alnum:][:punct:]]+).fcs.density.fcs.cluster.fcs.anno.Rsave", "\\1", names);
-	# 	pivot <- cbind(1:nrow(pivot),pivot)
-	# 	colnames(pivot) <- c("name", names)
-	# 	if (!is.null(pivot) && ncol(pivot) > 0) {
-	# 		write.csv(pivot, file=paste(out_dir,'tables/byAttribute/',p,'_table','.csv',sep=''), row.names=FALSE)
-	# 	}
-	# }
-	# 
-	# byNodeData = list()
-	# # Transposition 2: Rows are nodes, cols are params, files are files
-	# dir.create(paste(out_dir,'tables','bySample',sep='/'),recursive=TRUE,showWarnings=FALSE)
-	# for (f in files) {
-	# 	load(f)
-	# 	f = basename(f)
-	# 	pivot <- anno
-	# 	names <- colnames(pivot)
-	# 	pivot <- cbind(1:nrow(pivot),pivot)
-	# 	colnames(pivot) <- c("ID", names)
-	# 	name <- gsub("output/([[:alnum:][:punct:]]+).fcs.density.fcs.cluster.fcs.anno.Rsave", "\\1", f)
-	# 	write.csv(pivot, file=paste(out_dir,'tables/bySample/',name,'_table','.csv',sep=''), row.names=FALSE)
-	# }
-	# 
-	# # Transposition 3: Rows are params, cols are files, files are nodes
-	# dir.create(paste(out_dir,'tables','byNodeID',sep='/'),recursive=TRUE,showWarnings=FALSE)
-	# for (node in rownames(pivot)){
-	# 	tableData = list()
-	# 	for (f in files){
-	# 		load(f)
-	# 		f = basename(f)
-	# 		tableData[[f]]= unlist(anno[node,,drop=T])
-	# 	}
-	# 	tableData = do.call("cbind",tableData)
-	# 	write.csv(tableData, file=paste(out_dir,'tables/byNodeID/',node,'_table','.csv',sep=''), row.names=TRUE,quote=F)  
-	# }
-	# 
-	# 
-	# invisible(NULL)
+	message("Clustering files...")
+	cells_file <- paste(out_dir,"clusters.fcs",sep="")
+	clust_file <- paste(out_dir,"clusters.table",sep="")
+	graph_file <- paste(out_dir,"mst.gml",sep="")
+	SPADE.FCSToTree(sampled_files, cells_file, graph_file, clust_file, 
+					cols=cluster_cols, 
+					transforms=transforms,
+					k=k, 
+					desired_samples=clustering_samples,
+					comp=comp)
+
+	sampled_files <- c()
+	for (f in density_files) {
+		message("Upsampling file: ",f)
+		f_sampled <- paste(f,".cluster.fcs",sep="")
+		SPADE.addClusterToFCS(f, f_sampled, cells_file, cols=cluster_cols, transforms=transforms, comp=comp)
+		sampled_files <- c(sampled_files, f_sampled)
+	}
+
+	graph  <- read.graph(graph_file, format="gml")
+
+	# Compute the layout once for the MST, write out for use by other functions
+	layout_table <- layout(graph)
+	if (deparse(substitute(layout)) != "SPADE.layout.arch")  # The igraph internal layouts are much more compact than arch.layout
+		layout_table = layout_table * 50
+	write.table(layout_table,paste(out_dir,file="layout.table",sep=""),row.names = FALSE,col.names = FALSE)
+	
+	# Track all attributes to compute global limits
+	attr_values <- list()
+
+	if (is.null(panels)) {  # Initialize panels if NULL
+		panels <- list( list(panel_files=basename(files), median_cols=NULL) )
+	}
+	
+	for (p in panels) {
+	
+		reference_medians <- NULL
+		if (!is.null(p$reference_files)) {
+			# Note assuming the ordering of files and sampled_files are identical...
+			reference_files   <- sapply(as.vector(p$reference_files), function(f) { sampled_files[match(f,basename(files))[1]] })
+			reference_medians <- SPADE.markerMedians(reference_files, vcount(graph), cols=p$fold_cols, transforms=transforms, cluster_cols=cluster_cols, comp=comp)
+		}
+
+		for (f in as.vector(p$panel_files)) {
+			# Note assuming the ordering of files and sampled_files are identical...
+			f <- sampled_files[match(f, basename(files))[1]]
+
+			# Compute the median marker intensities in each node, including the overall cell frequency per node	
+			message("Computing medians for file: ",f)
+			anno <- SPADE.markerMedians(f, vcount(graph), cols=p$median_cols, transforms=transforms, cluster_cols=cluster_cols, comp=comp)
+			if (!is.null(reference_medians)) {	# If a reference file is specified								
+				# Compute the fold change compared to reference medians
+				message("Computing fold change for file: ", f)
+				fold_anno <- SPADE.markerMedians(f, vcount(graph), cols=p$fold_cols, transforms=transforms, cluster_cols=cluster_cols, comp=comp)
+				fold <- fold_anno$medians - reference_medians$medians
+				raw_fold <- fold_anno$raw_medians / reference_medians$raw_medians
+				
+				ratio <- log10(fold_anno$percenttotal / reference_medians$percenttotal); 
+				colnames(ratio) <- c("percenttotalratiolog")
+				is.na(ratio) <- fold_anno$count == 0 | reference_medians$count == 0
+
+				# Merge the fold-change columns with the count, frequency, and median columns
+				anno <- c(anno, list(percenttotalratiolog = ratio, fold = fold, raw_fold=raw_fold))	
+			}
+
+			SPADE.write.graph(SPADE.annotateGraph(graph, layout=layout_table, anno=anno), paste(f,".medians.gml",sep=""), format="gml")
+			# We save an R native version of the annotations to simpify plotting, and other downstream operations
+			anno <- SPADE.flattenAnnotations(anno)
+			for (c in colnames(anno)) { attr_values[[c]] <- c(attr_values[[c]], anno[,c]) }
+			save(anno, file=paste(f,"anno.Rsave",sep="."))	
+		}
+	}
+	
+	# Compute the global limits (cleaning up attribute names to match those in GML files)
+	attr_ranges <- t(sapply(attr_values, function(x) { quantile(x, probs=c(0.00, pctile_color, 1.00), na.rm=TRUE) }))
+	rownames(attr_ranges) <- sapply(rownames(attr_ranges), function(x) { gsub("[^A-Za-z0-9_]","",x) })
+	write.table(attr_ranges, paste(out_dir,"global_boundaries.table",sep=""), col.names=FALSE)
+
+	# Evaluate population rules if mapping provided
+	ruleDir = system.file(paste("tools","PopulationRules","",sep=.Platform$file.sep),package="spade")
+	
+	if (!is.null(fcs_channel_mappings_json)) {
+		library("rjson")
+		library("hash")
+		fcs_channel_mapping=fromJSON(fcs_channel_mappings_json)
+		cat("Evaluating Population Rules....\n")
+		#Ketaki: Is this correct? Look at only one fcs file. The channel ordering should be the same across all fcs files.
+		population_rule_mappings = SPADE.createPopulationMapping(sampled_files[1], ruleDir, fcs_channel_mapping)
+		for (filename in names(population_rule_mappings)) {
+			for (sampled_file in sampled_files) {
+				cat(paste("Rule:",filename,"\n",sep=" "))
+				message("Evaluating population rule: ", filename, " for file: ", sampled_file)
+				SPADE.evaluateCellTypeRule(out_dir,sampled_file,ruleCols=population_rule_mappings[[filename]],ruleDir=ruleDir,ruleFile=filename)     
+			}
+		}
+	}
+
+	### Produce statistics tables ###
+	message("Producing tables...")
+	dir.create(paste(out_dir,'tables',sep='/'),recursive=TRUE,showWarnings=FALSE)
+	# Find the files
+	files <- dir(out_dir,full.names=TRUE,pattern=glob2rx("*.anno.Rsave"))
+	# Find all the params
+	params <- unique(unlist(c(sapply(files, function(f) { load(f); colnames(anno); })))) #Update to remove redundant file writing
+	
+	# Transposition 1: Rows are nodes, cols are files, files are params
+	dir.create(paste(out_dir,'tables','byAttribute',sep='/'),recursive=TRUE,showWarnings=FALSE)
+	for (p in params) {
+		pivot <- c()
+		names <- c()
+		for (f in files){
+			load(f)
+			f = basename(f)
+			if (p %in% colnames(anno)) {
+				pivot <- cbind(pivot, anno[,p])
+				names <- c(names, f)
+			}
+		}
+		names <- gsub("[[:alnum:][:punct:]]+/output/([[:alnum:][:punct:]]+).fcs.density.fcs.cluster.fcs.anno.Rsave", "\\1", names);
+		pivot <- cbind(1:nrow(pivot),pivot)
+		colnames(pivot) <- c("name", names)
+		if (!is.null(pivot) && ncol(pivot) > 0) {
+			write.csv(pivot, file=paste(out_dir,'tables/byAttribute/',p,'_table','.csv',sep=''), row.names=FALSE)
+		}
+	}
+
+	byNodeData = list()
+	# Transposition 2: Rows are nodes, cols are params, files are files
+	dir.create(paste(out_dir,'tables','bySample',sep='/'),recursive=TRUE,showWarnings=FALSE)
+	for (f in files) {
+		load(f)
+		f = basename(f)
+		pivot <- anno
+		names <- colnames(pivot)
+		pivot <- cbind(1:nrow(pivot),pivot)
+		colnames(pivot) <- c("ID", names)
+		name <- gsub("output/([[:alnum:][:punct:]]+).fcs.density.fcs.cluster.fcs.anno.Rsave", "\\1", f)
+		write.csv(pivot, file=paste(out_dir,'tables/bySample/',name,'_table','.csv',sep=''), row.names=FALSE)
+	}
+
+	# Transposition 3: Rows are params, cols are files, files are nodes
+	dir.create(paste(out_dir,'tables','byNodeID',sep='/'),recursive=TRUE,showWarnings=FALSE)
+	for (node in rownames(pivot)){
+		tableData = list()
+		for (f in files){
+			load(f)
+			f = basename(f)
+			tableData[[f]]= unlist(anno[node,,drop=T])
+		}
+		tableData = do.call("cbind",tableData)
+		write.csv(tableData, file=paste(out_dir,'tables/byNodeID/',node,'_table','.csv',sep=''), row.names=TRUE,quote=F)  
+	}
+
+	
+	invisible(NULL)
 }
 
 # The following functions are copied from the TeachingDemos package, 

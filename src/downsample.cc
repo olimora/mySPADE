@@ -7,7 +7,6 @@
 #include <limits>
 #include <algorithm>
 #include <vector>
-#include <iostream>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -130,10 +129,8 @@ extern "C" {
 		Dist_t median_min_dist = compute_median_min_dist(static_cast<Data_t*>(REAL(tbl)), dim, obs, std::min(obs,med_samples_l)),
 					 kernel_width    = kernel_mult_l * median_min_dist,
 					 apprx_width     = apprx_mult_l  * median_min_dist;
-
-		std::cout << "Epsilon = " << kernel_width << std::endl;
 	
-		count_neighbors(static_cast<Data_t*>(REAL(tbl)), dim, obs, kernel_width, apprx_width, densities_l);
+		count_neighbors(static_cast<Data_t*>(REAL(tbl)), dim, obs, kernel_width, apprx_width, densities_l);	
 	
 		UNPROTECT(1);
 		return densities;
