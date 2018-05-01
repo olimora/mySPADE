@@ -548,6 +548,10 @@ SPADE.plot.trees <- function(graph, files, file_pattern="*anno.Rsave", out_dir="
 			
 			boundary <- round(boundary, 2) # Round boundary values to 2 digits of precision so scale looks nice
 			
+			if (is.na(boundary[1]) && is.na(boundary[2])) {
+				boundary = c(0, 0)
+			}
+			
 			if (boundary[1] == boundary[2]) {  boundary <- c(boundary[1]-1, boundary[2]+1); }  # Prevent "zero" width gradients
 				
 			grad <- seq(boundary[1], boundary[2], length.out=length(colorscale))
